@@ -1,11 +1,14 @@
-FROM maven:3.9.6-eclipse-temurin-17
+FROM maven:3.9.6-eclipse-temurin-17 as maven
 
-RUN mkdir checkdev_notification
+WORKDIR /app
 
-WORKDIR checkdev_notification
+COPY . /app
 
-COPY . .
+RUN mvn package
 
-RUN mvn package -Dmaven.test.skip=true
+FROM eclipse-temurin:17-jdk
 
-CMD ["sh", "-c", "sleep ${START_DELAY:-0} && java -jar target/notification-1.0.0.jar"]
+WORKDIR /app
+
+COPY --from=maven /app/target/notification-1.0.0.jar app.jar
+CMD ["sh", "-c", "sleep ${START_DELAY:-15} && java -jar app.jar"]
